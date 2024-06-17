@@ -6,9 +6,18 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"golang.org/x/exp/slices"
 )
+
+func isPresent(arr []string, target string) bool {
+	found := false
+	for _, ele := range arr {
+		if ele == target {
+			found = true
+			break
+		}
+	}
+	return found
+}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -23,7 +32,7 @@ func main() {
 
 		switch commands[0] {
 		case "type":
-			if slices.Contains(builtinCommands, commands[1]) {
+			if isPresent(builtinCommands, commands[1]) {
 				fmt.Printf("%s is a shell builtin\n", commands[1])
 			} else {
 				fmt.Printf("%s: not found\n", commands[1])
