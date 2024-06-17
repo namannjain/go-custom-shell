@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -66,7 +67,19 @@ func main() {
 			fmt.Fprintf(os.Stdout, "%s\n", strings.Join(commands[1:], " "))
 
 		default:
-			fmt.Printf("%s: command not found\n", input)
+			_, err := getFilePathIfExists(directories, commands[0])
+			if err != nil {
+				fmt.Printf("%s: command not found\n", input)
+			} else {
+				exernalProgramObj := exec.Command(commands[0])
+				arguments := commands[1:]
+				exernalProgramObj.Args = append(exernalProgramObj.Args, arguments...)
+
+				// externalProgramOutput, err := exernalProgramObj.CombinedOutput()
+				exernalProgramObj.Stderr = os.Stderr
+				exernalProgramObj.Stdout = os.Stdout
+				exernalProgramObj.Run()
+			}
 		}
 	}
 }
