@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -19,9 +20,24 @@ func isPresent(arr []string, target string) bool {
 	return found
 }
 
+func getFilePathIfExists(directories []string, fileName string) (string, error) {
+	for _, directory := range directories {
+		filePath := directory + "/" + fileName
+		_, err := os.Stat(filePath)
+		if err == nil {
+			return filePath, nil
+		}
+	}
+
+	return "", errors.New("file does not exist")
+}
+
 func main() {
+	//env path
+	directories := strings.Split(os.Getenv("PATH"), ":")
+
 	reader := bufio.NewReader(os.Stdin)
-	builtinCommands := []string{"echo", "exit", "cat", "type"}
+	builtinCommands := []string{"echo", "exit", "type"}
 
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
@@ -34,6 +50,8 @@ func main() {
 		case "type":
 			if isPresent(builtinCommands, commands[1]) {
 				fmt.Printf("%s is a shell builtin\n", commands[1])
+			} else if filepath, err := getFilePathIfExists(directories, commands[1]); err == nil {
+				fmt.Printf("%s is %s\n", commands[1], filepath)
 			} else {
 				fmt.Printf("%s: not found\n", commands[1])
 			}
