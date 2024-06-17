@@ -33,12 +33,24 @@ func getFilePathIfExists(directories []string, fileName string) (string, error) 
 	return "", errors.New("file does not exist")
 }
 
+// exists returns whether the given file or directory exists
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func main() {
 	//env path
 	directories := strings.Split(os.Getenv("PATH"), ":")
 
 	reader := bufio.NewReader(os.Stdin)
-	builtinCommands := []string{"echo", "exit", "type"}
+	builtinCommands := []string{"echo", "exit", "type", "pwd", "cd"}
 
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
@@ -48,6 +60,7 @@ func main() {
 		commands := strings.Split(input, " ")
 
 		switch commands[0] {
+
 		case "type":
 			if isPresent(builtinCommands, commands[1]) {
 				fmt.Printf("%s is a shell builtin\n", commands[1])
@@ -65,6 +78,23 @@ func main() {
 
 		case "echo":
 			fmt.Fprintf(os.Stdout, "%s\n", strings.Join(commands[1:], " "))
+
+		case "pwd":
+			if currwd, err := os.Getwd(); err == nil {
+				fmt.Println(currwd)
+			}
+
+		case "cd":
+			if commands[1] == "~" {
+				commands[1] = os.Getenv("HOME")
+			}
+
+			resp, err := exists(commands[1])
+			if resp && err == nil {
+				os.Chdir(commands[1])
+			} else {
+				fmt.Printf("cd: %s: No such file or directory\n", commands[1])
+			}
 
 		default:
 			_, err := getFilePathIfExists(directories, commands[0])
